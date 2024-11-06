@@ -87,3 +87,63 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"\nAccuracy: {accuracy:.2f}")
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
+
+# Function to predict the genre of a new audio file
+def predict_genre(file_path, model, scaler):
+    # Extract features from the new audio file
+    features = extract_features(file_path)
+    
+    if features is not None:
+        # Scale the features
+        features_scaled = scaler.transform([features])  # Scale the features
+        # Make prediction
+        prediction = model.predict(features_scaled)
+        return prediction[0]  # Return the predicted genre
+    else:
+        return None
+
+# Example usage for predicting a new audio file
+print("First prediction")
+new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
+predicted_genre = predict_genre(new_audio_file, svm, scaler)
+
+if predicted_genre:
+    print(f"The predicted genre for the audio file is: {predicted_genre}")
+else:
+    print("Failed to predict the genre. Please check the audio file.")
+
+print("Second prediction")
+new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
+predicted_genre = predict_genre(new_audio_file, svm, scaler)
+
+if predicted_genre:
+    print(f"The predicted genre for the audio file is: {predicted_genre}")
+else:
+    print("Failed to predict the genre. Please check the audio file.")
+
+print("Third prediction")
+new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
+predicted_genre = predict_genre(new_audio_file, svm, scaler)
+
+if predicted_genre:
+    print(f"The predicted genre for the audio file is: {predicted_genre}")
+else:
+    print("Failed to predict the genre. Please check the audio file.")
+
+print("Fourth prediction")
+new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
+predicted_genre = predict_genre(new_audio_file, svm, scaler)
+
+if predicted_genre:
+    print(f"The predicted genre for the audio file is: {predicted_genre}")
+else:
+    print("Failed to predict the genre. Please check the audio file.")
+
+print("Fifth prediction")
+new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
+predicted_genre = predict_genre(new_audio_file, svm, scaler)
+
+if predicted_genre:
+    print(f"The predicted genre for the audio file is: {predicted_genre}")
+else:
+    print("Failed to predict the genre. Please check the audio file.")
