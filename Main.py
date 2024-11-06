@@ -9,9 +9,13 @@ from sklearn.metrics import accuracy_score, classification_report
 
 # Function to extract MFCC features
 def extract_features(file_path):
-    audio, sample_rate = librosa.load(file_path, sr=22050)  # Set a fixed sample rate
-    mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
-    return mfccs.T
+    try:
+        audio, sample_rate = librosa.load(file_path, sr=22050)  # Set a fixed sample rate
+        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
+        return mfccs.mean(axis=1)  # Return the mean of MFCCs across time
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return None  # Return None for files that cannot be processed
 
 # Data preparation
 data = []
@@ -23,10 +27,12 @@ dataset_path = 'E:/Machine learning/GZNAT-music-dataset/Data/genres_original'
 for genre in ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']:
     genre_path = f'{dataset_path}/{genre}'
     for file in os.listdir(genre_path):
-        file_path = os.path.join(genre_path, file)
-        features = extract_features(file_path)
-        data.append(features)
-        labels.append(genre)
+        if file.endswith('.wav') or file.endswith('.mp3'):  # Check for audio file types
+            file_path = os.path.join(genre_path, file)
+            features = extract_features(file_path)
+            if features is not None:  # Only add features and labels if features were successfully extracted
+                data.append(features)
+                labels.append(genre)
 
 # Convert data to numpy arrays
 data = np.array(data)
