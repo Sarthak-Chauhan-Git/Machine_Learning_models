@@ -34,31 +34,27 @@ def extract_features(file_path, max_length=1000):
         print(f"Error processing {file_path}: {str(e)}")
         return None
 
-# Define paths to your dataset
-dataset_path = "E:\Machine learning\GZNAT-music-dataset\Data\genres_original"  # Replace with your actual dataset path
-classical_path = os.path.join(dataset_path, "classical")
-country_path = os.path.join(dataset_path, "country")
+# Define path to your dataset
+dataset_path = "E:/Machine learning/GZNAT-music-dataset/Data/genres_original"  # Replace with your actual dataset path
 
-# Get list of audio files
-classical_files = [os.path.join(classical_path, f) for f in os.listdir(classical_path) if f.endswith('.wav')]
-country_files = [os.path.join(country_path, f) for f in os.listdir(country_path) if f.endswith('.wav')]
+# List of genres
+genres = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
 
 X = []
 y = []
 
-# Process classical music files
-for file in classical_files:
-    features = extract_features(file)
-    if features is not None:
-        X.append(features)
-        y.append('classical')
-
-# Process country music files
-for file in country_files:
-    features = extract_features(file)
-    if features is not None:
-        X.append(features)
-        y.append('country')
+# Process files for each genre
+for genre in genres:
+    genre_path = os.path.join(dataset_path, genre)
+    print(f"Processing {genre} files...")
+    for file in os.listdir(genre_path):
+        if file.endswith('.wav'):
+            file_path = os.path.join(genre_path, file)
+            features = extract_features(file_path)
+            if features is not None:
+                X.append(features)
+                y.append(genre)
+    print(f"Finished processing {genre} files.")
 
 if len(X) == 0:
     print("No files were successfully processed. Please check your file paths and audio files.")
@@ -66,6 +62,8 @@ if len(X) == 0:
 
 X = np.array(X)
 y = np.array(y)
+
+print(f"Total samples processed: {len(X)}")
 
 # Split the data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -76,14 +74,16 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # Train the model
+print("Training the model...")
 svm = SVC(kernel='rbf', C=1.0, random_state=42)
 svm.fit(X_train_scaled, y_train)
 
 # Make predictions
+print("Making predictions...")
 y_pred = svm.predict(X_test_scaled)
 
 # Evaluate the model
 accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy:.2f}")
+print(f"\nAccuracy: {accuracy:.2f}")
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
