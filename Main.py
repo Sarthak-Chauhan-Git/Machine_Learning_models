@@ -1,100 +1,89 @@
 import librosa
 import numpy as np
-import pandas as pd
-import os
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report
-from concurrent.futures import ProcessPoolExecutor
-import warnings
-import multiprocessing
+import os
 
-# Suppress warnings
-warnings.filterwarnings("ignore")
-
-# Function to extract features
-def extract_features(file_path):
+def extract_features(file_path, max_length=1000):
     try:
-        audio, sample_rate = librosa.load(file_path, sr=22050, res_type='kaiser_fast')
-        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
-        chroma = librosa.feature.chroma_stft(y=audio, sr=sample_rate)
-        spectral_contrast = librosa.feature.spectral_contrast(y=audio, sr=sample_rate)
+        y, sr = librosa.load(file_path)
         
-        features = np.hstack((
-            np.mean(mfccs, axis=1),
-            np.mean(chroma, axis=1),
-            np.mean(spectral_contrast, axis=1)
-        ))
+        # Extract features
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+        mel = librosa.feature.melspectrogram(y=y, sr=sr)
+        
+        # Ensure all features have the same length
+        mfcc = librosa.util.fix_length(mfcc, size=max_length, axis=1)
+        chroma = librosa.util.fix_length(chroma, size=max_length, axis=1)
+        mel = librosa.util.fix_length(mel, size=max_length, axis=1)
+        
+        # Flatten 2D arrays to 1D
+        mfcc_flat = mfcc.flatten()
+        chroma_flat = chroma.flatten()
+        mel_flat = mel.flatten()
+        
+        # Combine all features
+        features = np.concatenate([mfcc_flat, chroma_flat, mel_flat])
+        
         return features
+    
     except Exception as e:
         print(f"Error processing {file_path}: {str(e)}")
         return None
 
-# Data preparation
-def process_file(args):
-    file_path, genre = args
-    features = extract_features(file_path)
-    return features, genre
+# Define paths to your dataset
+dataset_path = "E:\Machine learning\GZNAT-music-dataset\Data\genres_original"  # Replace with your actual dataset path
+classical_path = os.path.join(dataset_path, "classical")
+country_path = os.path.join(dataset_path, "country")
 
-def main():
-    data = []
-    labels = []
+# Get list of audio files
+classical_files = [os.path.join(classical_path, f) for f in os.listdir(classical_path) if f.endswith('.wav')]
+country_files = [os.path.join(country_path, f) for f in os.listdir(country_path) if f.endswith('.wav')]
 
-    dataset_path = 'E:/Machine learning/GZNAT-music-dataset/Data/genres_original'
-    genres = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
+X = []
+y = []
 
-    # Use ProcessPoolExecutor for parallel processing
-    with ProcessPoolExecutor() as executor:
-        file_genre_pairs = [
-            (os.path.join(dataset_path, genre, file), genre)
-            for genre in genres
-            for file in os.listdir(os.path.join(dataset_path, genre))
-            if file.endswith(('.wav', '.mp3'))
-        ]
-        
-        results = list(executor.map(process_file, file_genre_pairs))
+# Process classical music files
+for file in classical_files:
+    features = extract_features(file)
+    if features is not None:
+        X.append(features)
+        y.append('classical')
 
-    for features, genre in results:
-        if features is not None:
-            data.append(features)
-            labels.append(genre)
+# Process country music files
+for file in country_files:
+    features = extract_features(file)
+    if features is not None:
+        X.append(features)
+        y.append('country')
 
-    # Convert data to numpy arrays
-    data = np.array(data)
-    labels = np.array(labels)
+if len(X) == 0:
+    print("No files were successfully processed. Please check your file paths and audio files.")
+    exit()
 
-    # Feature scaling
-    scaler = StandardScaler()
-    data = scaler.fit_transform(data)
+X = np.array(X)
+y = np.array(y)
 
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Create and train the Random Forest classifier with GridSearchCV
-    param_grid = {
-        'n_estimators': [100, 200, 300],
-        'max_depth': [None, 10, 20, 30],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4]
-    }
+# Scale the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-    rf = RandomForestClassifier(random_state=42)
-    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3, n_jobs=-1, verbose=2)
-    grid_search.fit(X_train, y_train)
+# Train the model
+svm = SVC(kernel='rbf', C=1.0, random_state=42)
+svm.fit(X_train_scaled, y_train)
 
-    # Get the best model
-    best_rf = grid_search.best_estimator_
+# Make predictions
+y_pred = svm.predict(X_test_scaled)
 
-    # Make predictions on the test set
-    y_pred = best_rf.predict(X_test)
-
-    # Evaluate the model
-    accuracy = accuracy_score(y_test, y_pred)
-    print("Best parameters:", grid_search.best_params_)
-    print("Accuracy:", accuracy)
-    print(classification_report(y_test, y_pred))
-
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    main()
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
