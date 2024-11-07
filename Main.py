@@ -102,48 +102,27 @@ def predict_genre(file_path, model, scaler):
     else:
         return None
 
-# Example usage for predicting a new audio file
-print("First prediction")
-new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
-predicted_genre = predict_genre(new_audio_file, svm, scaler)
+# Loop to ask for predictions until the user decides to quit
+while True:
+    user_input = input("Do you want to predict the genre of a new audio file? (yes/no): ").strip().lower()
+    
+    if user_input == 'yes':
+        new_audio_file = input("Please provide the path to the audio file: ").strip()
+        predicted_genre = predict_genre(new_audio_file, svm, scaler)
 
-if predicted_genre:
-    print(f"The predicted genre for the audio file is: {predicted_genre}")
-else:
-    print("Failed to predict the genre. Please check the audio file.")
-
-print("Second prediction")
-new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
-predicted_genre = predict_genre(new_audio_file, svm, scaler)
-
-if predicted_genre:
-    print(f"The predicted genre for the audio file is: {predicted_genre}")
-else:
-    print("Failed to predict the genre. Please check the audio file.")
-
-print("Third prediction")
-new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
-predicted_genre = predict_genre(new_audio_file, svm, scaler)
-
-if predicted_genre:
-    print(f"The predicted genre for the audio file is: {predicted_genre}")
-else:
-    print("Failed to predict the genre. Please check the audio file.")
-
-print("Fourth prediction")
-new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
-predicted_genre = predict_genre(new_audio_file, svm, scaler)
-
-if predicted_genre:
-    print(f"The predicted genre for the audio file is: {predicted_genre}")
-else:
-    print("Failed to predict the genre. Please check the audio file.")
-
-print("Fifth prediction")
-new_audio_file = "E:\Machine learning\Test_rock.wav"  # Replace with the path to your new audio file
-predicted_genre = predict_genre(new_audio_file, svm, scaler)
-
-if predicted_genre:
-    print(f"The predicted genre for the audio file is: {predicted_genre}")
-else:
-    print("Failed to predict the genre. Please check the audio file.")
+        if predicted_genre:
+            print(f"The predicted genre for the audio file is: {predicted_genre}")
+        else:
+            print("Failed to predict the genre. Please check the audio file.")
+    
+    elif user_input == 'no':
+        print("Exiting the prediction loop.")
+        break
+    
+    elif user_input == 'quit':
+        print("Quitting the program.")
+        break
+    
+    else:
+        print(" Invalid input. Please respond with 'yes' to predict, 'no' to exit, or 'quit' to quit the program.") 
+    
