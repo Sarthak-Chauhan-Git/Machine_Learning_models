@@ -2,7 +2,7 @@ import librosa
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 import os
 
@@ -56,7 +56,7 @@ y = []
 
 # Process files for each genre
 for genre in genres:
-    genre_path = os.path.join(dataset_path, genre)
+    genre_path = os.path.join("E:\Machine learning\MusicGenreClassification\GZNAT-music-dataset\Data\genres_original", genre)
     print(f"Processing {genre} files...")
     for file in os.listdir(genre_path):
         if file.endswith('.wav'):
@@ -92,22 +92,22 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Hyperparameter tuning using GridSearchCV
+# Hyperparameter tuning using GridSearchCV for Random Forest
 param_grid = {
-    'C': [0.1, 1, 10],
-    'kernel': ['linear', 'rbf', 'poly'],
-    'gamma': ['scale', 'auto']
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10]
 }
 
-grid_search = GridSearchCV(SVC(), param_grid, cv=5)
+grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5)
 grid_search.fit(X_train_scaled, y_train)
 
 # Best parameters from grid search
 best_params = grid_search.best_params_
-print(f"Best parameters: {best_params}")
+print(f"Best parameters: {best_params }")
 
-# Train the SVM model with the best parameters
-model = SVC(**best_params)
+# Train the Random Forest model with the best parameters
+model = RandomForestClassifier(**best_params)
 model.fit(X_train_scaled, y_train)
 
 # Make predictions
@@ -115,5 +115,6 @@ y_pred = model.predict(X_test_scaled)
 
 # Evaluate the model
 accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy * 100:.2f}%")
-print(classification_report(y_test, y_pred, target_names=genres))
+print(f"Accuracy: {accuracy:.2f}")
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
