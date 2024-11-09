@@ -1,8 +1,10 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
 import nltk
 from nltk.corpus import stopwords
 import re
@@ -33,27 +35,43 @@ y = data['Label']
 # Split the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Vectorization
-vectorizer = CountVectorizer()
+# Use TF-IDF Vectorization
+vectorizer = TfidfVectorizer()
 X_train_vectorized = vectorizer.fit_transform(X_train)
 X_test_vectorized = vectorizer.transform(X_test)
 
-# Create and train the model
-model = MultinomialNB()
-model.fit(X_train_vectorized, y_train)
+# Experiment with different models
+models = {
+    'Naive Bayes': MultinomialNB(),
+    'Support Vector Machine': SVC(),
+    'Random Forest': RandomForestClassifier()
+}
 
-# Predict on the test set
-y_pred = model.predict(X_test_vectorized)
+best_model_name = None
+best_model = None
+best_accuracy = 0
 
-# Calculate accuracy
-accuracy = accuracy_score(y_test, y_pred)
-print(f'Model Accuracy: {accuracy * 100:.2f}%')
+# Train and evaluate each model
+for model_name, model in models.items():
+    model.fit(X_train_vectorized, y_train)
+    y_pred = model.predict(X_test_vectorized)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f'{model_name} Accuracy: {accuracy * 100:.2f}%')
+    
+    if accuracy > best_accuracy:
+        best_accuracy = accuracy
+        best_model_name = model_name
+        best_model = model  # Save the model object
 
-# Test the model with user input
+# Display classification report for the best model
+print(f'\nBest Model: {best_model_name} with Accuracy: {best_accuracy * 100:.2f}%')
+print(classification_report(y_test, best_model.predict(X_test_vectorized)))
+
+# Test the best model with user input
 user_input = input("Enter a sentence to analyze its sentiment: ")
 user_input_processed = preprocess_text(user_input)
 user_input_vectorized = vectorizer.transform([user_input_processed])
-prediction = model.predict(user_input_vectorized)
+prediction = best_model.predict(user_input_vectorized)
 
 # Display the result
 sentiment = "Positive" if prediction[0] == 1 else "Negative"
