@@ -56,12 +56,17 @@ if 'Label' in df.columns:
         'Predicted_Profitability': all_predictions
     })
 
-    # Filter companies predicted to be profitable
+    # Filter companies predicted to be profitable and those predicted to be in loss
     profitable_companies = results[results['Predicted_Profitability'] == 1]
+    loss_companies = results[results['Predicted_Profitability'] == 0]
 
     # Output the names of companies predicted to be profitable
     print("Predicted Profitable Companies:")
     print(profitable_companies)
+
+    # Output the names of companies predicted to be in loss
+    print("\nPredicted Loss Companies:")
+    print(loss_companies)
 
 else:
     print("Error: 'Label' column not found in the DataFrame. Available columns are:")
