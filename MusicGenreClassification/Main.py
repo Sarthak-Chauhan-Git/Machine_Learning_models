@@ -67,16 +67,22 @@ else:
     best_model = None
     best_accuracy = 0
 
+    print("\n==============================")
+    print(" Model Performance Evaluation ")
+    print("==============================\n")
+
     for model_name, model in models.items():
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        print(f'{model_name} Accuracy: {accuracy:.2f}')
+        print(f'{model_name:<25} Accuracy: {accuracy:.2%}')  # Format as percentage
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model = model_name
 
-    print(f'Best Model: {best_model} with accuracy: {best_accuracy:.2f}')
+    print("\n==============================")
+    print(f' Best Model: {best_model} with accuracy: {best_accuracy:.2%}')  # Format as percentage
+    print("==============================\n")
 
     # Predict the genre of the test file
     test_file_path = 'Test_r.wav'  # Update this path to the location of your test file
@@ -86,7 +92,7 @@ else:
     # Use the best model to predict
     if best_model == 'Random Forest':
         model = RandomForestClassifier()
-    elif best_model == ' SVC':
+    elif best_model == 'SVM':
         model = SVC()
     elif best_model == 'KNN':
         model = KNeighborsClassifier()
@@ -101,4 +107,6 @@ else:
     predicted_genre = model.predict(test_features)
     predicted_genre_label = label_encoder.inverse_transform(predicted_genre)
 
-    print(f'The predicted genre for {test_file_path} is: {predicted_genre_label[0]}')
+    print("=====================================")
+    print(f' Predicted Genre for "{test_file_path}": {predicted_genre_label[0]}')
+    print("=====================================")
